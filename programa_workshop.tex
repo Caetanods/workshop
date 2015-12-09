@@ -1,0 +1,73 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[portuguese]{babel}
+\usepackage[T1]{fontenc}
+\begin{document}
+
+\begin{center}
+{\LARGE \textbf{PROGRAMA DO WORKSHOP}}
+\end{center}
+
+Programa sob construção. Atualizado constantemente.
+
+\section{Introdução}
+
+\begin{enumerate}
+\item O que é um modelo?
+
+	\begin{enumerate}
+	\item O que são os parâmetros de um modelo?
+	\item O básico sobre estimativa de parâmetros de modelos.
+	\item Solução exata por derivação (aka. matemágica). (Mostrar exemplo simples de Máxima Verossimilhança.)
+	\item Estimativa usando minimização. (Trabalhar o conceito de busca - “Quente ou frio?”)
+	\end{enumerate}
+	
+\item Função de verossimilhança.
+	\begin{enumerate}
+	\item O que é uma função de verossimilhança?
+	\item Usando a função de verossimilhança para buscar a máxima verossimilhança.
+	\item Exemplos de busca de verossimilhança.
+	\end{enumerate}
+	
+\item Superfície de verossimilhança.
+	\begin{enumerate}
+	\item Exemplos de superfícies em trabalhos publicados.
+	\item O conceito de pico.
+	\item O conceito de vale.
+	\item O conceito de “platô” (Likelihood ridge, flat regions).
+	\end{enumerate}	
+	
+\end{enumerate}
+
+\section{A ideia por trás do MCMC.}
+
+\begin{enumerate}
+\item Explorando um terreno desconhecido.
+	\begin{enumerate}
+	\item Analogia: Robôs em Marte.
+	\item Distribuição posterior em função da superfície de verossimilhança.
+	\item Analogia: Escolhendo chapéis.
+	\item Mais tempo olhando os chapéis que melhor serviram.
+	\end{enumerate}
+\end{enumerate}
+
+\section{Comportamento da estimativa usando máxima verossimilhança.}
+
+\begin{enumerate}
+\item Ponto de partida.
+	\begin{enumerate}
+	\item Ponto de partida pode terminar em ótimo local.
+	\item Greed searches.
+	\item Múltiplas estimativas para verificar convergência em máxima verossimilhança.	
+	\end{enumerate}
+	
+\item Não tão simples quanto parece.
+	\begin{enumerate}
+	\item Algorítimos de busca restrita de MLE. (dificuldade de estimar certos parâmetros).
+	\item O problema do ótimo local.
+	\end{enumerate}
+\end{enumerate}
+
+\section{MCMC passo a passo}
+
+\end{document}
