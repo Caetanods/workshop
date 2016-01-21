@@ -36,7 +36,7 @@ plot(res~seq(1,20), xlab = "mean (mu)", ylab = "log(Likelihood)", pch = 16)
 ## Para tal vamos utilizar a função 'persp'.
 
 x <- 1:20 ## valores para mu
-y <- seq(0, 10, length.out = 20) ## valores para sigma
+y <- seq(0.5, 10, length.out = 20) ## valores para sigma
 ## Vamos usar z para criar uma tabela com a combinação dos valores de
 ##    log likelihood.
 ## Os valores de x estão nas linhas e os de y nas colunas.
@@ -48,3 +48,16 @@ for(i in 1:20){
 }
 
 persp(x, y, z, theta = 35, phi = 35, xlab = "mu", ylab = "sigma^2", zlab = "log(likelihood)", border = "black", col = "grey", r = 4)
+
+## Outra forma de plot:
+library(lattice)
+X <- as.matrix( expand.grid(x, y))
+colnames(X) <- c("mu","var")
+Z <- vector()
+for(i in 1:nrow(X)){
+  Z[i] <- lik.norm(dt=nr, mu=X[i,1], var=X[i,2])
+}
+df <- data.frame(X, Z)
+
+wireframe(Z ~ mu*var, data=df, main="", shade=TRUE
+          , screen = list(z = -50, x = -70) )
