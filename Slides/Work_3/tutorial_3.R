@@ -279,7 +279,7 @@ run.hansen <- function(phy, dat, alpha, sigma, maxit){
 }
 
 ## MLE usando a função 'hansen' do pacote 'ouch'.
-run.hansen(phy=phy, dat=data.ou)
+run.hansen(phy=phy, dat=data.ou, alpha=1, sigma=1, maxit=10000)
 
 ## A estimativa de máxima verossimilhança usando a função do ouch faz sentido?
 ## Por que o valor de theta não é igual o valor da raíz e nem igual ao valor do ótimo
