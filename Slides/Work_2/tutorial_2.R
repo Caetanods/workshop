@@ -149,3 +149,9 @@ optim(c(1,1), to.optim, control=list(fnscale=-1))
 ##   as fórmulas derivadas.
 mean(nr)
 var(nr)
+
+## Veja que existe uma diferença entre as duas estimativas.
+
+## Essa diferença é importante?
+## Qual os possíveis motivos da diferença?
+## Por que nenhuma das duas estimativas converge com o valor que gerou os dados?
