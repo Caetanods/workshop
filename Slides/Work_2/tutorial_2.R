@@ -155,3 +155,42 @@ var(nr)
 ## Essa diferença é importante?
 ## Qual os possíveis motivos da diferença?
 ## Por que nenhuma das duas estimativas converge com o valor que gerou os dados?
+
+###########################################################
+## Desafio:
+
+## Use a função de likelihood do modelo linear (regressão) para explorar a
+##    superfície de verossimilhança e estimar os melhores valores para A e B em
+##    A*x + B = y
+
+## Nessa regressão vamos usar uma distribuição normal para o erro, o erro nada
+##    mais é do que o quão espalhado os pontos são da reta. Quando ajustamos
+##    uma reta em uma regressão os nossos dados não se alinham completamente na
+##    linha, essa distãncia das observações para a linha de regressão é explicada
+##    por uma distribuição normal.
+
+## Abaixo vou construir a função de verossimilhança para esse modelo.
+## Note que a função é uma soma da log(likelihood) de uma distribuição normal
+##    com média 'A * x + B' e desvio padrão 'sd' para cada ponto.
+lm.log.lik <- function(a, b, sd){
+  ## a = a term.
+  ## b = b term.
+  ## sd = standard deviation.
+  pred <- a*x + b
+  single.log.liks <- dnorm(y, mean = pred, sd = sd, log = T)
+  sum(single.log.liks)
+}
+
+## Gerando os dados:
+true.a <- 5
+true.b <- 0
+true.sd <- 10
+sample <- 31
+
+# create independent x-values 
+x <- (-(sampleSize-1)/2):((sampleSize-1)/2)
+# create dependent values according to ax + b + N(0,sd)
+y <-  trueA * x + trueB + rnorm(n=sampleSize,mean=0,sd=trueSd)
+plot(x,y, main="Test Data")
+
+## Dica: Copie e modifique os passos do tutorial acima.
