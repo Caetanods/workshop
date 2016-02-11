@@ -114,7 +114,7 @@ persp(x=rate, y=root, z=z, theta = -30, phi = 20, xlab = "sigma^2", ylab = "phyl
 ###################################################################
 ## Modelo Ornstein-Uhlenbeck (OU).
 
-## O modelo Ou adiciona um parâmetro para o valo do ótimo e uma força de seleção que
+## O modelo OU adiciona um parâmetro para o valo do ótimo e uma força de seleção que
 ##    puxa o valor da característica para mais próximo deste ótimo.
 ## OU ainda possuí um componente de BM, por isso, a simulação de um processo.
 ##    em um modelo OU será parecida com o processo em um modelo BM.
