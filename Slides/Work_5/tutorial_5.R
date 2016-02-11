@@ -174,7 +174,13 @@ next.root; next.rate
 ##    está preparado para rodar milhares de vezes, como é necessário no MCMC.
 
 ## Como você faria para rodar esses passos milhares de vezes?
+
 ## Quais informações (objetos/valores) devemos salvar ao longo das gerações?
 
-## DESAFIO: Use o exemplo acima para fazer mais duas gerações de MCMC. Guarde os
+## Sabemos que variância não aceita valores negativos. Existe algum problema com esse
+##   esquema de propostas de novos valores? Qual é o problema?
+
+## DESAFIO 1: Tente inventar uma maneira de não gerar ou não aceitar valores
+##   negativos de rate.
+## DESAFIO 2: Use o exemplo acima para fazer mais duas gerações de MCMC. Guarde os
 ##    resultados de cada uma das gerações.
