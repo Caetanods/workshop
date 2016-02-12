@@ -11,20 +11,21 @@ library(coda)
 ##   no pdf do pacote na pasta 'Work_7'.
 
 ## Primeiro precisamos carregar nossa cadeia.
-mcmc.1 <- readRDS(file = "../Work_6/mcmc.BM.1.rds") ## Error here!
+mcmc.1 <- readRDS(file = "../Work_6/mcmc.BM.1.rds")
 mcmc.2 <- readRDS(file = "../Work_6/mcmc.BM.2.rds")
 mcmc.3 <- readRDS(file = "../Work_6/mcmc.BM.3.rds")
 
 ## Agora criamos um objeto da classe 'mcmc'.
 ## Note que a função tem opções para retirada do burn-in (informando a geração de
 ##   início) e aplicação do thinning. Mas, por enquanto, vamos usar a cadeia toda.
+mcmc.1 <- mcmc(mcmc.1)
 mcmc.2 <- mcmc(mcmc.2)
 mcmc.3 <- mcmc(mcmc.3)
 
 ## Agora combinamos as cadeias em um só objeto. Fazendo isso informamos ao 'coda' que
 ##   essas cadeias são réplicas com diferentes pontos de partida.
 help(mcmc.list)
-mcmc <- mcmc.list(mcmc.2, mcmc.3)
+mcmc <- mcmc.list(mcmc.1, mcmc.2, mcmc.3)
 
 ## Primeiramente podemos ver o 'summary' das nossas cadeias:
 summary(mcmc)
