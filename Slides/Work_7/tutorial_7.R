@@ -11,6 +11,8 @@ library(coda)
 ##   no pdf do pacote na pasta 'Work_7'.
 
 ## Primeiro precisamos carregar nossa cadeia.
+## Lembre-se de mudar o diretório abaixo para onde os seus arquivos estão:
+setwd("~/Documents/Academicos/Harmon_Lab/MCMC - Workshop - Brasil/workshop/Slides/Work_7")
 mcmc.1 <- readRDS(file = "../Work_6/mcmc.BM.1.rds")
 mcmc.2 <- readRDS(file = "../Work_6/mcmc.BM.2.rds")
 mcmc.3 <- readRDS(file = "../Work_6/mcmc.BM.3.rds")
@@ -31,7 +33,7 @@ mcmc <- mcmc.list(mcmc.1, mcmc.2, mcmc.3)
 summary(mcmc)
 ## Nesse summary podemos ver uma quantidade importante. O 95% HPD, a região de 95%
 ##   de maior densidade (i.e., probabilidade) dos parâmetros. Veja, por exemplo,
-##   que o valor de 'root' (valor da raíz da filogenia) varia entre 15.06 e 44.08 no
+##   que o valor de 'root' (valor da raíz da filogenia) varia entre 9.41 e 11.47 no
 ##   95% HPD. Mas ainda temos outras análises a fazer.
 
 ## Antes de mais nada vamos retirar o burn-in. Para tal vamos observar o comportamento
@@ -53,6 +55,9 @@ traceplot(post.mcmc)
 
 ## Já está com uma cara melhor, não?
 
+## Vamos ver o novo intervalo de HPD das variáveis na posterior sem o burn-in:
+summary(post.mcmc)
+
 ## Agora que retiramos o burn-in vamos fazer alguns diagnósticos de convergência.
 ## Vamos usar o Gelman and Rubin R que verifica se a variação entre cadeias é menor
 ##   que a variação dentro das cadeias.
@@ -72,3 +77,62 @@ gelman.diag(x = post.mcmc, transform = FALSE, autoburnin = FALSE, multivariate =
 ## O valor 'Lag x' é o número de gerações que foram puladas para calcular a
 ##   autocorrelação. 'Lag 5' significa que foram somente avaliadas gerações de 5 em 5.
 autocorr(x = post.mcmc, relative = FALSE)
+
+## A autocorrelação é bastante alta até um Lag de 10. Indicando que para diminuir
+##   esse valor de autocorrelação deveriamos descartar valores da cadeia e reter somente
+##   uma em cada 10 gerações. Não vamos fazer esse passo agora.
+
+## Qual o número de Effective Sample Size?
+effectiveSize(x = post.mcmc)
+
+## Mesmo com a alta autocorrelação temos um número mínimo de amostragem igual a 407
+##   combinando as diferentes cadeias. Ou seja, não há necessidade de rodas mais
+##   gerações de MCMC para aumentar o número de ESS. Muito provavelmente ~ 400
+##   pontos independentes de amostragem é o bastante para se ter uma idéia da
+##   distribuição posterior dos parâmetros.
+
+densplot(x = post.mcmc)
+
+## Veja a densidade para 'root' a média do processo de Brownian Motion (valor da raíz)
+##   e 'rate' a variância do processo (ou taxa).
+## Essa distribuição é chamada de posterior distribution e é nosso resultado final.
+## Agora podemos ustilizar tal distribuição para fazer conclusões sobre nosso modelo.
+
+## Um ponto de discussão importante que é difícil de ser abordado é "Quantas
+##  gerações de MCMC eu preciso rodar?". Uma prática comum é verificar artigos com
+##  problemas similares e ver quanto é geralmente aceito. Para inferência filogenética
+##  , por exemplo, geralmente são utilizados valores na casa dos milhões. No entanto,
+##  problemas com modelos de 2 a 5 parâmetros acabam ficando na cada dos milhares.
+## Existe um método que tenta estimar quantas gerações seriam necessárias para
+##  atingir um certo número de samples. Esse método é bom para verificar
+##  cadeias 'teste'.
+
+raftery.diag(data = mcmc.1)
+
+## DESAFIO: Veja que o número total de gerações para estimar o parâmetro 'rate'
+##  é maior do que rodamos. Tente aumentar o número de gerações. Qual a diferença
+##  na estimativa de convergência, ESS, e do 95% HPD?
+
+## Nesse tutorial mostrei como acessar convergência e verificar burn-in quando
+##  temos mais de uma cadeia de MCMC começando de pontos iniciais diferentes.
+##  Essa é a situação ideal e deveria ser replicada sempre que possível.
+
+## No entanto, algumas análises demoram dias, ou mesmo semanas, para serem completas
+##  e pode ser bastante complicado rodar uma série de cadeias de MCMC com a mesma
+##  análise. O contraponto para esse argumento é que no final das análises, após
+##  verificar convergência você poderá COMBINAR AS CADEIAS DA POSTERIOR, ou seja,
+##  o número de amostras vai aumentar além de ter mais certeza de que o ótimo
+##  global foi atingido (pois as cadeias chegaram em um mesmo ponto vindo de
+##  pontos diferentes).
+## Bom, se eu vou rodar uma análise que leva semanas, eu gostaria de saber no final
+##  que o resultado está aceitável, não é mesmo?
+
+## Mas existem outras maneiras de verificar convergência sem rodar mais de uma
+##  cadeia. Veja as funções abaixo e tente verificar a convergência de uma das
+##  cadeias isoladamente:
+
+help(geweke.diag)
+help(heidel.diag)
+
+## DESAFIO: Tente rodar esses diagnósticos e verificar a convergência das cadeias
+##  uma a uma. Descreva as vantagens e desvantagens de cada diagnóstico.
