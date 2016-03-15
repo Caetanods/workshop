@@ -5,7 +5,7 @@
 ##   objetos e interpretação dos parãmetros fica por sua conta! ;)
 
 ## Para nossas análises vamos utilizar o pacote 'coda'.
-library(coda)
+if(!require(coda)) {install.packages("coda"); library(coda)}
 
 ## Esse pacote é dedicado a diversas análises da posterior. Veja a lista de funções
 ##   no pdf do pacote na pasta 'Work_7'.

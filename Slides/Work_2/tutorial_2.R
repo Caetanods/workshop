@@ -107,7 +107,7 @@ persp(x, y, z, theta = 35, phi = 35, xlab = "mu", ylab = "sigma^2", zlab = "log(
 
 ## Para fazer esse plot também podemos usar o pacote 'lattice'.
 
-library(lattice)
+if(!require(lattice)) {install.packages("lattice"); library(lattice)}
 X <- as.matrix( expand.grid(x, y))
 colnames(X) <- c("mu","var")
 Z <- vector()

@@ -50,7 +50,7 @@ for(i in 1:20){
 persp(x, y, z, theta = 35, phi = 35, xlab = "mu", ylab = "sigma^2", zlab = "log(likelihood)", border = "black", col = "grey", r = 4)
 
 ## Outra forma de plot:
-library(lattice)
+if(!require(lattice)) {install.packages("lattice"); library(lattice)}
 X <- as.matrix( expand.grid(x, y))
 colnames(X) <- c("mu","var")
 Z <- vector()

@@ -12,8 +12,8 @@ set.seed(1234)
 ## Para entender melhor as utilidades do pacote 'phytools', visite o blog do
 ##   Dr. Liam Revell. -- http://blog.phytools.org/
 
-library(geiger)
-library(phytools)
+if(!require(geiger)) {install.packages("geiger"); library(geiger)}
+if(!require(phytools)) {install.packages("phytools"); library(phytools)}
 
 ## Simulando a filogenia:
 phy <- rtree(100)
@@ -199,7 +199,7 @@ abline(h=14, col="blue", lwd=2)
 
 ## Vamos primeiro usar o pacote 'bayou'. Esse é um pacote com várias funções Bayesianas
 ##   para estimar diversos modelos OU.
-library(bayou)
+if(!require(bayou)) {install.packages("bayou"); library(bayou)}
 
 ## A função abaixo usa elementos do 'bayou' para calcular o log(likelihood) do modelo
 ##    OU.
@@ -252,7 +252,7 @@ persp(x=rate, y=root, z=z, theta = -30, phi = 20, xlab = "alpha", ylab = "theta"
 ## Use o exemplo acima como guia.
 
 ## Podemos também utilizar o pacote 'ouch'. Que é um crássico.
-library(ouch)
+if(!require(ouch)) {install.packages("ouch"); library(ouch)}
 
 ## Lembrando dos parãmetros que usamos para gerar os dados:
 ## data.ou <- fastBM(tree = phy, a = 10, sig2 = 0.5, alpha = 0.2, theta = 20)

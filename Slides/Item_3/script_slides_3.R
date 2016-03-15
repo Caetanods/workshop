@@ -56,9 +56,9 @@ abline(h = 10, col="red")
 ##    de uma distribuição normal com média 0.
 ## Mas como esse processo pode ser visto em uma arvore filogenética?
 
-library(phytools)
-library(geiger)
-library(TreeSim)
+if(!require(phytools)) {install.packages("phytools"); library(phytools)}
+if(!require(geiger)) {install.packages("geiger"); library(geiger)}
+if(!require(TreeSim)) {install.packages("TreeSim"); library(TreeSim)}
 
 ## Simulamos uma arvore:
 phy <- sim.bd.taxa(n = 10, numbsim = 1, lambda = 1, mu = 0)[[1]]

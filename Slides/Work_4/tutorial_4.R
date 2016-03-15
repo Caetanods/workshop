@@ -26,7 +26,7 @@ singleBML<-function(phy, x, sigsq, mean) {
 }
 
 ## Simulando dados. Filogenia e traits.
-library(geiger)
+if(!require(geiger)) {install.packages("geiger"); library(geiger)}
 phy <- rtree(100)
 phy <- compute.brlen(phy)
 data <- sim.char(phy = phy, par = 0.5, nsim = 1, model = "BM", root = 10)[,,1]

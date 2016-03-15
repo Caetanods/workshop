@@ -136,7 +136,7 @@ mcmc.BM <- function(phy, data, initial.rate, initial.root, prior.rate, prior.roo
 ## Primeiro vamos gerar os dados e filogenia.
 
 set.seed(1234)
-library(geiger)
+if(!require(geiger)) {install.packages("geiger"); library(geiger)}
 
 phy <- rtree(100)
 phy <- compute.brlen(phy)
