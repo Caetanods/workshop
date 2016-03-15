@@ -27,7 +27,7 @@ lik.norm(dt=nr, mu=11, var=4)
 lik.norm(dt=nr, mu=10, var=4)
 lik.norm(dt=nr, mu=10, var=5)
 
-## Note que o valor de verossimilhança é muito pequeno (as vezes igual a 0). 
+## Note que o valor de verossimilhança é muito pequeno (as vezes igual a 0).
 ## Isso acontece pois a exponenciação com valor negativo dependente do número
 ## de amostra faz com que a quantidade calculada seja muito pequena.
 
@@ -182,12 +182,12 @@ lm.log.lik <- function(a, b, sd){
 }
 
 ## Gerando os dados:
-true.a <- 5
-true.b <- 0
-true.sd <- 10
-sample <- 31
+trueA <- 5
+trueB <- 0
+trueSd <- 10
+sampleSize <- 31
 
-# create independent x-values 
+# create independent x-values
 x <- (-(sampleSize-1)/2):((sampleSize-1)/2)
 # create dependent values according to ax + b + N(0,sd)
 y <-  trueA * x + trueB + rnorm(n=sampleSize,mean=0,sd=trueSd)
