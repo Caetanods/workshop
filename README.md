@@ -7,6 +7,4 @@ Diversos métodos estatísticos modernos para o estudo de ecologia e evolução 
 
 **Público alvo**: Pessoas que já utilizam ou pretendem utilizar métodos que implementam MCMC e que possuem interesse sobre como o método funciona. Conhecimento da linguagem R é importante para um melhor aproveitamento do curso.
 
-**Data e local**: 15 a 17 de Fevereiro de 2016 no Instituto de Biociências, USP, São Paulo.
-
-**Inscrição**: Email para 'caetanods1 [at] gmail [dot] com' com o título "Inscrição workshop MCMC". O email deve conter um pequeno texto sobre quais métodos (exemplos de softwares) você utiliza (ou pretende utilizar) em sua pesquisa ou tem interesse. Caso não use nenhum método, explicar o interesse no workshop. Favor indicar se possuí experiência com o R.
+**Data e local**: 24 a 27 de Julho de 2017 no Instituto de Biociências, USP, São Paulo.
