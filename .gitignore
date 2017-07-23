@@ -1,0 +1,8 @@
+/Slides/*/support_files
+.Rhistory
+*.svg
+*.odt
+*.docx
+*.doc
+*.ods
+*.sh
