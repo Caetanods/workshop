@@ -18,6 +18,7 @@ lik.norm <- function(dt, mu, var){
   n <- length(dt)
   first <- (2*pi*var)^(-n/2)
   second <- (-1/2*var) * ( sum(dt-mu) )^2
+  ## 'first' e 'second' estao somente para ajudar a ler a funcao.
   lik <- first * exp( second )
   return(lik)
 }
@@ -28,18 +29,27 @@ lik.norm(dt=nr, mu=10, var=4)
 lik.norm(dt=nr, mu=10, var=5)
 
 ## Note que o valor de verossimilhança é muito pequeno (as vezes igual a 0).
-## Isso acontece pois a exponenciação com valor negativo dependente do número
-## de amostra faz com que a quantidade calculada seja muito pequena.
+## Isso acontece pois a exponenciação com valor negativo é dependente do número
+## de amostra e faz com que a quantidade calculada seja muito pequena.
+## Esse efeito já acontece com n = 2000!
 
 ## Vamos diminuir o número da amostra e ver qual o efeito sobre o cálculo da
-##   verossimilhança.
+##   verossimilhança. Menor valor de n deve facilitar o calculo da verossimilhança.
 nr.small <- rnorm(n = 10, mean = 10, sd = 2)
+
+lik.norm(dt=nr.small, mu=11, var=4)
+lik.norm(dt=nr.small, mu=10, var=4)
 lik.norm(dt=nr.small, mu=10, var=5)
 
-## Veja que agora conseguimos um valor de verossimilhança muito maior.
+## Veja que agora conseguimos um valor de verossimilhança diferente de 0.
 ## Utilizar a função de likelihood sem transformar para o log pode provocar erros
-##   nos cálculos, principalmente pois teremos que avaliar a função muitas vezes
-##   quando implementamos uma análise usando MCMC.
+##   nos cálculos.
+## Vamos ver que durante o MCMC temos que avaliar a função de verossimilhança com valores
+##   de parametros "bem ruins". Ou seja, a verossimilhança do modelo é bem pequena. Nesse caso
+##   seria praticamente impossivel proceder com a função de verossimilhança sem efetuar a
+##   transformação para o log.
+
+## Vamos repetir usando a transformação log:
 
 ## A função abaixo usa o log para transformar o cálculo da verossimilhança.
 log.lik.norm <- function(dt, mu, var){
@@ -57,29 +67,35 @@ log.lik.norm <- function(dt, mu, var){
 ##    sem a transformação:
 lik.norm(dt=nr, mu=11, var=4)
 log.lik.norm(dt=nr, mu=11, var=4)
+
 lik.norm(dt=nr, mu=10, var=4)
 log.lik.norm(dt=nr, mu=10, var=4)
+
 lik.norm(dt=nr, mu=10, var=5)
 log.lik.norm(dt=nr, mu=10, var=5)
 
 ## Note que os valores produzidos pela função em espaço log são negativos, no entanto,
-##   o valor absoluto é muito maior. Cálculos com muitas casas decimais causam
-##   problemas.
-## Esse é o motivo porque muitas vezes a likelihood é mostrada em valores negativos.
-## Pois na verdade está sendo mostrado os valores de log likelihood.
+##   o valor absoluto é muito maior!
+## Cálculos com muitas casas decimais causam problemas para o computador.
+## Esse é o motivo porque muitas vezes a likelihood é mostrada em valores negativos, pois
+##   na verdade está sendo mostrado os valores de log likelihood.
 
 ## Podemos usar a função de loglik para traçar a superfície de verossimilhança.
 ## O gráfico abaixo mostra somente o perfil de verossimilhança para a média
-##     assumindo desvio padrão (sigma) = 2.
+##   assumindo desvio padrão (sigma^2) = 2 fixo. Em outras palavras, o gráfico
+##   mostra o perfil de verossimilhança para a média condicionado em sigma^2 = 2.
+
 res_mu <- vector()
 for(i in 1:20){
   res_mu[i] <- log.lik.norm(dt=nr, mu=i, var=4)
 }
 plot(res_mu~seq(1,20), xlab = "mean (mu)", ylab = "log(Likelihood)", pch = 16, type = "b")
 
-## Podemos fixar o valor de mu e traçar o perfil de verossimilhança para sigma.
+## Podemos, da mesma forma, fixar o valor de mu (média) e traçar o perfil de
+##     verossimilhança para sigma^2 (variância).
 ## O gráfico abaixo mostra somente o perfil de verossimilhança para a variância
 ##     assumindo média (mu) = 10.
+
 res_sig <- vector()
 for(i in 1:20){
   res_sig[i] <- log.lik.norm(dt=nr, mu=10, var=i)
@@ -87,9 +103,8 @@ for(i in 1:20){
 plot(res_sig~seq(1,20), xlab = "variance (sigma^2)", ylab = "log(Likelihood)", pch = 16, type = "b")
 
 ## Agora vamos calcular a superfície completa de likelihood.
-## Nesse caso temos dois parâmetros e, portanto, precisamos adicionar
-##    mais um eixo no gráfico. O que vai tornar o gráfico 3D.
-## Para tal vamos utilizar a função 'persp'.
+## Nesse caso temos dois parâmetros e, portanto, precisamos adicionar mais um eixo no gráfico.
+## O que vai tornar o gráfico 3D. Para tal vamos utilizar a função 'persp'.
 
 x <- 1:20 ## valores para mu
 y <- 1:20 ## valores para sigma
@@ -103,7 +118,14 @@ for(i in 1:20){
   }
 }
 
+## A matrix 'z' guarda valores de log-likelihood para cada uma das 20x20 combinações de média e variãncia.
+head(z)
+
+## Agora o gráfico:
 persp(x, y, z, theta = 35, phi = 35, xlab = "mu", ylab = "sigma^2", zlab = "log(likelihood)", border = "black", col = "grey", r = 4)
+## Mude os valores de 'theta' e 'phi' para explorar diferentes perspectivas.
+persp(x, y, z, theta = 20, phi = 15, xlab = "mu", ylab = "sigma^2", zlab = "log(likelihood)", border = "black", col = "grey", r = 4)
+persp(x, y, z, theta = 200, phi = 15, xlab = "mu", ylab = "sigma^2", zlab = "log(likelihood)", border = "black", col = "grey", r = 4)
 
 ## Para fazer esse plot também podemos usar o pacote 'lattice'.
 
@@ -116,8 +138,7 @@ for(i in 1:nrow(X)){
 }
 df <- data.frame(X, Z)
 
-wireframe(Z ~ mu*var, data=df, main="", shade=TRUE
-          , screen = list(z = -50, x = -70) )
+wireframe(Z ~ mu*var, data=df, main="", shade=TRUE, screen = list(z = -50, x = -70), xlab="media", ylab="var", zlab="log(Lik)")
 
 ## Agora que temos uma visão da superfície de verossimilhança do modelo,
 ##   vamos fazer uma estimativa da Maximum Likelihood Estimate usando uma
@@ -134,6 +155,8 @@ help(optim)
 ##   seja somente um vetor com os valores iniciais dos parâmetros da função.
 ## Ou seja, os dados precisam ser incluídos diretamente na função que será passada
 ##   para a função 'optim'.
+## (O que você vai fazer agora é muito similar com o que uma série de pacotes em R fazem
+##   para encontrar o Maximum Likelihood Estimate de modelos!)
 to.optim <- function(par){
   log.lik.norm(dt=nr, mu=par[1], var=par[2])
 }
@@ -143,18 +166,27 @@ to.optim <- function(par){
 ##   tópicos.
 ## Precisamos mudar o valor de 'control$fnscale' para fazer uma maximização
 ##   ao invés de minimização usando 'optim'.
-optim(c(1,1), to.optim, control=list(fnscale=-1))
+## Faz sentido para você que precisamos fazer uma maximização dessa função? Esse conceito
+##   é importante. Não deixe a dúvida passar.
+model.fit <- optim(c(1,1), to.optim, control=list(fnscale=-1))
+names( model.fit )
+model.fit$par ## O MLE dos parametros. Primero média e depois variancia.
+model.fit$value ## O log-likelihood para o MLE.
+model.fit$convergence ## Código para a convergência. Veja a pagina de ajuda de 'optim'.
 
 ## Agora podemos calcular o valor de MLE para a média e variância usando
-##   as fórmulas derivadas.
+##   as fórmulas analíticas.
 mean(nr)
 var(nr)
 
-## Veja que existe uma diferença entre as duas estimativas.
+## Veja que existe uma diferença pequena entre as duas estimativas.
 
-## Essa diferença é importante?
+## Responda as perguntas:
+
+## Essa diferença parece ser importante?
 ## Qual os possíveis motivos da diferença?
-## Por que nenhuma das duas estimativas converge com o valor que gerou os dados?
+## Por que nenhuma das duas estimativas resultou no mesmo valor de média e variância 
+##    que gerou os dados?
 
 ###########################################################
 ## Desafio:
@@ -181,16 +213,16 @@ lm.log.lik <- function(a, b, sd){
   sum(single.log.liks)
 }
 
-## Gerando os dados:
+## Gerando os dados.
+
+## Valores para os parametros:
 trueA <- 5
 trueB <- 0
 trueSd <- 10
-sampleSize <- 31
+sampleSize <- 30
 
 # create independent x-values
 x <- (-(sampleSize-1)/2):((sampleSize-1)/2)
 # create dependent values according to ax + b + N(0,sd)
 y <-  trueA * x + trueB + rnorm(n=sampleSize,mean=0,sd=trueSd)
 plot(x,y, main="Test Data")
-
-## Dica: Copie e modifique os passos do tutorial acima.

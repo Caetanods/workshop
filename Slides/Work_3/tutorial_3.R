@@ -11,18 +11,32 @@ set.seed(1234)
 ##   grande e muitas vezes os exemplos na pagina de ajuda estão ausentes.
 ## Para entender melhor as utilidades do pacote 'phytools', visite o blog do
 ##   Dr. Liam Revell. -- http://blog.phytools.org/
+## Alguns plots feitos pelo pacote 'phytools' mudam os padrões do 'plot.device'.
+##   Se isso acontecer, use o icone de 'vassoura' do RStudio para limpar todos os
+##   plots e faça a figura novamente.
 
 if(!require(geiger)) {install.packages("geiger"); library(geiger)}
 if(!require(phytools)) {install.packages("phytools"); library(phytools)}
 
 ## Simulando a filogenia:
 phy <- rtree(100)
-plot(phy)
+plot(phy); axisPhylo()
 
 ## Note que essa filogenia não tem todas as espécies alinhadas em uma mesma linha
 ##   no tempo. Ou seja, essa filogenia não é ultramétrica.
-## A grande maioria dos modelos que vamos explorar assumem que a filogenia seja
-##   ultramétrica. É comum ver artigos onde a filogenia foi transformada para ter
+## Uma filogenia não ultramétrica pode indicar que alguns dos terminais representam
+##   linhagens fósseis que não estão são encontradas no presente.
+## A grande maioria dos modelos que vamos explorar usam os comprimentos dos ramos
+##   como informação de tempo. Portanto, no caso de que suas espécies estão todas
+##   vivas, é necessário fazer com que a filogenia fique ultramétrica.
+## Vamos transformar a filogenia para que fique ultramétrica:
+phy <- compute.brlen(phy)
+plot(phy); axisPhylo()
+
+## Veja a pagina de ajuda para a função 'compute.brlen'. É uma alternativa interessante
+##   no caso de filogenias que não apresentam comprimentos de ramos em função do tempo.
+
+## É comum ver artigos onde a filogenia foi transformada para ter
 ##   todos os comprimentos de ramos iguais a 1. Essa é uma estratégia quando não temos
 ##   acesso aos comprimentos de ramos da filogenia, como no caso de uma análise de
 ##   parcimônia.
@@ -30,11 +44,10 @@ plot(phy)
 ##   comprimentos iguais a 1.
 
 par(mfrow=c(1,2))
-phy <- compute.brlen(phy)
 parc.phy <- phy
 parc.phy$edge.length <- rep(1, times=length(parc.phy$edge.length) )
-plot(phy, main = "Ultrametric tree", show.tip.label=FALSE)
-plot(parc.phy, main = "Parsimony - all 1", show.tip.label=FALSE)
+plot(phy, main = "Ultrametric tree", show.tip.label=FALSE); axisPhylo()
+plot(parc.phy, main = "Parsimony - all 1", show.tip.label=FALSE); axisPhylo()
 par(mfrow=c(1,1))
 
 ## Quando utilizamos métodos comparativos estamos muitas vezes usando modelos que
@@ -45,6 +58,8 @@ par(mfrow=c(1,1))
 ## Nessa situação é boa prática utilizar funções como "compute.brlen" para gerar
 ##   diferentes comprimentos de ramos para a filogenia e testar se estes influenciam
 ##   nos resutados.
+## Veja um exemplo em artigo anexo na pasta Work_3 Genevicius et al. 2017.
+
 ## Por hora vamos utilizar a filogenia ultramétrica para fazer simulações.
 
 ## Simulando dados usando um modelo de Brownian motion.
@@ -60,6 +75,8 @@ data <- sim.char(phy = phy, par = 0.5, nsim = 1, model = "BM", root = 10)[,,1]
 hist(data)
 
 ## Vamos plotar o valor das espécies na filogenia.
+## Essa função usa maximum likelihood estimate para o valor dos nós de cada ramo. Então pinta
+##  os ramos com a transição de valores entre cada nó (ou o terminal e o nó).
 contMap(tree = phy, x = data, type = "fan")
 contMap(tree = phy, x = data)
 
@@ -80,8 +97,14 @@ bmPlot(tree = phy, anc = 10, sig2 = 0.5)
 bmPlot(tree = phy, anc = 10, sig2 = 0.5)
 par(mfrow = c(1,1))
 
+## Cada um destas figuras mostrar o traço de uma simulação de movimento browniano seguindo
+##   a filogenia. Note que a filogenia e os valores dos parametros são os mesmos para cada
+##   um dos plots.
+## Observando estes plots, faz sentido dizer que em um processo BM o valor esperado não muda
+##   e a variãncia aumenta com o tempo?
+
 ## Função de verossimilhança para o modelo BM:
-singleBML<-function(phy, x, sigsq, mean) {
+singleBML <- function(phy, x, sigsq, mean) {
   ## phy = filogenia.
   ## x = dados.
   ## sigsq = sigma^2, a taxa do modelo.
@@ -96,7 +119,7 @@ singleBML<-function(phy, x, sigsq, mean) {
   lnlNum <- -0.5*(x-mean) %*% solve(V) %*% (x-mean)
   lnlDen <- log(sqrt((2*pi)^n*det(V)))
   L <- lnlNum-lnlDen
-  L
+  return(L)
 }
 
 ## Agora vamos usar a função de likelihood para gerar a superfície de likelihood
@@ -123,15 +146,17 @@ persp(x=rate, y=root, z=z, theta = -30, phi = 20, xlab = "sigma^2", ylab = "phyl
 ##   taxa e raíz no modelo BM podem gerar valores de verossimilhança não tão
 ##   distintos como espera-se.
 
+#################################################################################
+
 ## Modelo Ornstein-Uhlenbeck (OU).
 
-## O modelo OU adiciona um parâmetro para o valo do ótimo e uma força de seleção que
+## O modelo OU adiciona um parâmetro para o valo do ótimo e uma força de atração que
 ##    puxa o valor da característica para mais próximo deste ótimo.
-## OU ainda possuí um componente de BM, por isso, a simulação de um processo.
+## OU ainda possuí um componente de BM, por isso, a simulação de um processo
 ##    em um modelo OU será parecida com o processo em um modelo BM.
 
 ## Vamos simular o modelo OU como fizemos com o modelo BM:
-data.ou <- fastBM(tree = phy, a = 10, sig2 = 0.5, alpha = 0.4, theta = 20)
+data.ou <- fastBM(tree = phy, a = 10, sig2 = 0.5, alpha = 1.5, theta = 20)
 ## Note que o valor de 'theta' é o ótimo do regime OU e que 'alpha' é a força
 ##    que puxa os valores para o 'theta'.
 ## O valor da raíz é 10.
@@ -158,9 +183,27 @@ phenogram(tree = phy, x = data.ou)
 ## O cálculo do half-life é 'log(2)/alpha'.
 ## Lembre-se de verificar o half-life para saber se o processo OU é rápido ou
 ##   devagar.
-## No exemplo anterior temos log(2)/0.3 = 2.31. Visto que a arvore tem altura 1.
-##   O processo deve estar chegando na metade do caminho nas pontas. Veja usando
-##   os gráficos se isso faz sentido.
+## No exemplo anterior temos log(2)/1.5 = 0.46. Visto que a arvore tem altura 1.
+## O processo deve estar chegando quase no valor ótimo. Note que os valores dos
+##   terminais estão próximos de 20 (o valor estipulado para o ótimo):
+hist(data.ou)
+
+## Verifique o que acontece se fizermos a força de atração do processo diminuir.
+## Vamos calular o phylogenetic half-life para um alpha de 0.7:
+log(2) / 0.7
+
+## Nesse caso vai levar certa de 1 unidade de tempo para o valor da característica
+##   chegar na metade do caminho entre o valor da raiz (mu) e os terminais.
+data.ou.slow <- fastBM(tree = phy, a = 10, sig2 = 0.5, alpha = 0.7, theta = 20)
+phenogram(tree = phy, x = data.ou.slow)
+
+## Veja a distribuição dos valores dos terminais:
+hist(data.ou.slow)
+
+## Faça mais simulações com diferentes valores de alpha e sigma^2 para entender a interação
+##   entre estes dois parametros.
+
+#################################################################
 
 ## Processo OU sem uma filogenia.
 ## Agora vamos simular um processo de OU sem uma filogenia. Desta forma vai ser
@@ -187,13 +230,13 @@ abline(h=14, col="blue", lwd=2)
 
 ## Exercício: Mude os valores de alpha, tetha e sd. Veja como o modelo se
 ##   comporta. Note que:
-## alpha = força de seleção puxando para o valor de ótimo;
+## alpha = força de atração puxando para o valor de ótimo;
 ## tetha = valor do ótimo.
 ## sd = desvio padrão (variância) do processo de BM dentro do modelo OU.
 
-## Planeje os valores que vai utilizar antes. Lembre-se que se mudar todos
-##   os parâmetros de uma só vez não será capaz de entender a função de cada
-##   parâmetro no modelo.
+## Planeje os valores que vai utilizar antes. Calcule o phylogenetic half-life e compare
+##   com o tempo da simulação. Lembre-se que se mudar todos os parâmetros de uma só vez
+##   não será capaz de entender a função de cada parâmetro no modelo.
 
 ## Função de verossimilhança do modelo OU.
 
@@ -239,7 +282,6 @@ theta <- seq(1, 20, length.out = rep)
 z <- matrix(data = NA, nrow = rep, ncol = rep)
 for(i in 1:rep){
   for(j in 1:rep){
-    ## z[i,j] <- singleBML(phy = phy, x = data, sigsq = rate[i], mean = root[j])
     z[i,j] <- ou.log.lik(pars = c(alpha[i], sigma, theta[j]))
   }  
 }
@@ -251,7 +293,7 @@ persp(x=rate, y=root, z=z, theta = -30, phi = 20, xlab = "alpha", ylab = "theta"
 ## Escolha um parâmetro para manter fixo e crie combinação dos dois restantes.
 ## Use o exemplo acima como guia.
 
-## Podemos também utilizar o pacote 'ouch'. Que é um crássico.
+## Podemos também utilizar o pacote 'ouch'.
 if(!require(ouch)) {install.packages("ouch"); library(ouch)}
 
 ## Lembrando dos parãmetros que usamos para gerar os dados:
