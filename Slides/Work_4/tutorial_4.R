@@ -81,7 +81,7 @@ abline(v=mean(prior_1), col="red")
 ## E podemos calcular a posteriori: log-prior * log-lik
 ( post.bm <- p.theta * lik.bm )
 ## Podemos observar os resultados em uma tabela:
-res.bm <- data.frame( log.lik=lik.bm, prior=p.theta, posterior=post.bm )
+res.bm <- data.frame( log.lik=lik.bm, log.prior=p.theta, posterior=post.bm )
 head( res.bm )
 ## Note que está probabilidade posterior não está normalizada! Ou seja, não soma 1.
 ## Nesse caso dizemos que os valores são proporcionais a probabilidade posterior.
@@ -108,8 +108,9 @@ odds
 ## Lembre-se que estamos trabalhando com log. Portanto:
 (prior.1 - prior.1) + (lik.1 - lik.1)
 ## Ou seja, valores iguais de parâmetros tem odds ratio igual a 0.
+
 ## Se fosse no espaço normal, teriamos:
-exp( (prior.1 - prior.1) + (lik.1 - lik.1) )
+( exp(prior.1) / exp(prior.2) ) * ( exp(lik.1) / exp(lik.2) )
 ## E o odds ratio teria o valor de 1 quando Prop_1 é igual a Prop_2.
 
 ## Teste a diferença (odd ratio) entre valores de parâmetros mais distintos ou mais parecidos.
