@@ -2,14 +2,18 @@
 ##    de Hastings no algoritmo de MCMC, derivando o algoritmo de Metroplis-Hastings.
 
 ## Esse tutorial será a junção de muitos dos conceitos que vimos até o momento.
-## Vamos desenvolver e aplicar uma função completa de MCMC que não deixa nada a desejar
-##    a qualquer programa de análise Bayesiana que iria fazer tal análise.
+## Vamos desenvolver e aplicar uma função completa de MCMC que replica os mesmos
+##    passos utilizados em qualquer programa de análise Bayesiana usando MCMC.
+##    Ou seja, esse é o momento de aprender o MCMC passo-a-passo!
+
 ## Contrário do que foi mostrado no tutorial anterior, vamos montar primeiro uma função
 ##    que vai rodar a cadeia de MCMC e então verificar os resultados.
-## Se precisar entender o que está acontecendo em algum ponto em específico dessa
-##    função de análise, retorne ao 'tutorial_5.R'.
+## Se precisar entender melhor o que está acontecendo em algum ponto em específico dessa
+##    função de análise, comparar com o 'tutorial_5.R' pode ajudar.
 
-## O DESAFIO deste tutorial é fazer uma análise de MCMC para o modelo OU.
+## Após implementar a primeira análise usando o modelo de Brownian motion. Tente repetir a
+##    análise com diferentes configurações de distribuições a priori. Compare as distribuições
+##    posteriores para cada uma dessas análises.
 
 ## Vamos definir o sliding window:
 sliding.window <- function(x, w){
@@ -37,6 +41,8 @@ singleBML <- function(phy, x, sigsq, mean){
   return(L)
 }
 
+## Abaixo está a função de MCMC. Acompanhe o que está acontecendo nesse código antes de rodar.
+## Tente compreender o objetivo de cada um desses passos para a análise.
 mcmc.BM <- function(phy, data, initial.rate, initial.root, prior.rate, prior.root, 
                     w=0.5, gen){
   ## phy = filogenia no formato 'ape'.
@@ -143,8 +149,9 @@ phy <- compute.brlen(phy)
 data <- sim.char(phy = phy, par = 0.5, nsim = 1, model = "BM", root = 10)[,,1]
 
 ## Agora vamos criar as funções para o prior:
-## Aqui usando os mesmos priors do tutorial anterior. Fique a vontade para colocar
-##    seus próprios priors.
+## Aqui usando os mesmos priors do tutorial anterior. Tente implementar seus próprios priors
+##    depois. Uma dica seria utilizar um prior uniforme para cada um dos parâmetros.
+
 prior.rate <- function(x){
   dexp(x = x, rate = 0.5, log = TRUE)
 }
@@ -162,11 +169,14 @@ res.mcmc <- mcmc.BM(phy = phy, data = data, initial.rate = init.rate,
                     initial.root = init.root, prior.rate = prior.rate, 
                     prior.root = prior.root, w = 0.5, gen = 10000)
 
-## Rode as linhas abaixo para salvar ou ler resultados prontos.
-## Importe os resultados prontos caso o seu MCMC esteja demorando muito.
+## Pois é... Demora um pouco.
+
+## Rode as linhas abaixo para salvar ou ler resultados prontos no caso de seu computador
+##    estiver demorando muito mais de alguns minutos.
 # saveRDS(res.mcmc, file = "mcmc.BM.1.rds")
 # res.mcmc <- readRDS(file = "mcmc.BM.1.rds")
 
+## Agora vamos fazer alguns plots para visualizar os resultados:
 
 ## O trace plot para a likelihood.
 plot(1:10000, res.mcmc$log_lik, type = "l")
@@ -176,12 +186,15 @@ plot(1:10000, res.mcmc$log_lik, type = "l")
 ## O trace plot para os parâmetros.
 plot(1:10000, res.mcmc$root, type = "l")
 plot(1:10000, res.mcmc$rate, type = "l")
+
 ## Por que as primeiras gerações mostram um padrão diferente do resto?
 ## Marque no plot o valor inicial da cadeia e o valor de simulação ("valor real")
 ##    de cada parãmetro.
 
 ## Agora vamos plotar a densidade das distribuições posteriores.
 ## Também vamos plotar os priors, para comparação.
+## Sempre veja a distribuição dos priors junto com a posterior. Uma das críticas comuns
+##    que análises Bayesianas recebem é que a posterior não difere da distribuição a priori.
 hist(x = rnorm(n = 10000, mean = mean.data, sd = 10), border = "blue", 
      main = "Posterior for root")
 hist(x = res.mcmc$root, add = TRUE, col = "red")
@@ -198,10 +211,45 @@ hist(x = res.mcmc$rate, add = TRUE, col = "red")
 ## A região onde as linhas se concentram é a distribuição posterior.
 ## O trajeto para chegar lá, ou seja, esse caminho que a cadeia fez até formar
 ##   esse "bolo" é chamado de 'burn-in'. Burn-in nada mais é do que as primeiras
-##   gerações do MCMC quando a likelihood está subindo rapidamente e os parâmetros
-##   mudando.
+##   gerações do MCMC quando a likelihood está subindo rapidamente.
+## Em outras palavras, o burn-in é o número de gerações que leva a cadeia de MCMC
+##   para começar a amostrar a distribuição alvo, ou seja, a posterior para o modelo.
+
 plot(res.mcmc$rate, res.mcmc$root, type = "l", xlab="Rate chain", ylab="Root chain",
      col="red")
+
+## Agora vamos montar uma figura para mostrar o caminho que o MCMC percorreu na superfície de
+##   log(likelihood) do modelo.
+## Para tal vamos criar uma superficie de log(likelihood) focada no espaço de parametros visitados
+##   pela cadeia de MCMC.
+range.root <- range(res.mcmc$root)
+range.rate <- range(res.mcmc$rate)
+seq.rate <- seq(from=range.rate[1], to=range.rate[2], length.out=20)
+seq.root <- seq(from=range.root[1], to=range.root[2], length.out=20)
+lik.bm.model <- matrix(NA, ncol=20, nrow=20)
+for(i in 1:20){
+  for(j in 1:20){
+    lik.bm.model[i,j] <- singleBML(phy=phy, x=data, sigsq=seq.rate[i], mean=seq.root[j])[1,1]
+  }
+}
+res <- persp(seq.rate, seq.root, lik.bm.model, theta = -25, phi = 25, xlab = "rate", ylab = "root"
+             , zlab = "log(likelihood)", border = "black", col = "grey", r = 4)
+## Agora vamos usar a função 'trans3d' para plotar a cadeia de MCMC sobre essa superfície.
+## Note que vamos filtrar a cadeia para mostrar somente os passos aceitos. Não seria possivel
+##    mostrar as gerações em que a cadeia ficou "parada" nessa figura.
+accept.chain <- res.mcmc[res.mcmc$accept==1,]
+## Adiciona a cadeia de MCMC:
+lines( trans3d(x = accept.chain$rate, y = accept.chain$root, z = accept.chain$log_lik, pmat = res)
+       , col = "red", lwd = 2)
+## Mostra o ponto de início da cadeia:
+points( trans3d(x = accept.chain$rate[1], y = accept.chain$root[1], z = accept.chain$log_lik[1], pmat = res)
+       , col = "blue", pch=8, cex=2)
+## Calcula o ponto máximo da verossimilhança entre todas as gerações do MCMC.
+id.max.lik.chain <- which(accept.chain$log_lik == max(accept.chain$log_lik))
+## Mostra o ponto máximo de verossimilhança na superfície de likelihood.
+points( trans3d(x = accept.chain$rate[id.max.lik.chain], y = accept.chain$root[id.max.lik.chain]
+                , z = accept.chain$log_lik[id.max.lik.chain], pmat = res), col = "yellow"
+        , pch=16)
 
 ## Vamos rodar mais duas cadeias com diferentes valores iniciais para mostrar a 
 ##   convergência. Convergência é quando diferentes cadeias começando de locais
@@ -211,6 +259,7 @@ plot(res.mcmc$rate, res.mcmc$root, type = "l", xlab="Rate chain", ylab="Root cha
 res.mcmc.2 <- mcmc.BM(phy = phy, data = data, initial.rate = 10,
                     initial.root = 8, prior.rate = prior.rate, 
                     prior.root = prior.root, w = 0.5, gen = 10000)
+## Novamente, leia a cadeia do arquivo caso esteja demorando muito:
 # saveRDS(res.mcmc.2, file="mcmc.BM.2.rds")
 # res.mcmc.2 <- readRDS(file="mcmc.BM.2.rds")
 
@@ -223,6 +272,12 @@ res.mcmc.3 <- mcmc.BM(phy = phy, data = data, initial.rate = 1.5,
 
 ## Rodamos a mesma análise de MCMC três vezes. Em cada uma delas utilizamos diferentes
 ##   valores iniciais escolhidos para estarem espalhados na superfície de likelihood.
+## Não é um problema escolher os dados iniciais da cadeia. Aqui estamos escolhendo valores
+##   iniciais em diferentes pontos, distantes entre si, para verificar se todas as cadeias
+##   de MCMC convergem para a mesma distribuição posterior.
+## Infelizmente vários programas de MCMC não facilitam essa prática e a grande maioria dos
+##   usuários não presta atenção nos pontos que o MCMC começa em suas análises.
+
 range.rate <- range( c(res.mcmc$rate, res.mcmc.2$rate, res.mcmc.3$rate) )
 range.root <- range( c(res.mcmc$root, res.mcmc.2$root, res.mcmc.3$root) )
 plot(res.mcmc$rate, res.mcmc$root, type = "l", xlab="Rate chain", ylab="Root chain",
@@ -231,6 +286,14 @@ points(res.mcmc.2$rate, res.mcmc.2$root, type = "l", col="green")
 points(res.mcmc.3$rate, res.mcmc.3$root, type = "l", col="blue")
 
 ## Que conclusão você pode tirar desse plot?
+
+## Você consegue identificar a parte de burn-in destas cadeias?
+
+## O número de gerações de burn-in parece ser o mesmo para todas as cadeias? O que isso significa?
+
+## Tarefa (opcional) de programação em R: Tente reproduzir o plot em que a cadeia de MCMC foi
+##    mapeada na superficie de log-likelihood para esse modelo. Coloque as 3 cadeias no mesmo plot.
+##    Encontre um angulo que seja possivel entender o processo.
 
 ## No próximo tutorial vamos usar essas cadeias para explorar análises da posterior.
 ##    Portanto, lembre-se de salvar seus resultados.
