@@ -204,7 +204,9 @@ var(nr)
 ## Abaixo vou construir a função de verossimilhança para esse modelo.
 ## Note que a função é uma soma da log(likelihood) de uma distribuição normal
 ##    com média 'A * x + B' e desvio padrão 'sd' para cada ponto.
-lm.log.lik <- function(a, b, sd){
+lm.log.lik <- function(x, y, a, b, sd){
+  ## x = dados x
+  ## y = dados y
   ## a = a term.
   ## b = b term.
   ## sd = standard deviation.
