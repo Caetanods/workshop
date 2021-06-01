@@ -37,19 +37,30 @@ abline(h = 10, col="red")
 ## Agora vamos demonstrar o efeito da taxa do modelo BM:
 ## Taxas altas aumentam o acúmulo de variância com o tempo.
 
-par(mfrow= c(1,2))
 low.rate <- sapply(X = 1:10, FUN = function(x) bebado(passos = 100
                                                         , sd = 0.02, start = 10) )
 high.rate <- sapply(X = 1:10, FUN = function(x) bebado(passos = 100
                                                       , sd = 0.1, start = 10) )
+
+pdf("BM_rates_sim.pdf", height = 7, width = 14)
+par(mfrow= c(1,2))
 plot(x=1:100, y=low.rate[,1], type = "l", ylim=c(8, 12)
-     , xlab="tempo", ylab="posição")
+     , xlab="Time", ylab="Trait value")
 for(i in 2:ncol(low.rate)) lines(x=1:100, y=low.rate[,i])
 abline(h = 10, col="red")
 plot(x=1:100, y=high.rate[,1], type = "l", ylim=c(8, 12)
-     , xlab="tempo", ylab="posição")
+     , xlab="Time", ylab="Trait value")
 for(i in 2:ncol(high.rate)) lines(x=1:100, y=high.rate[,i])
 abline(h = 10, col="red")
+dev.off()
+
+## Faca um plot com o outcome do processo para mostrar que taxas mais rapidas
+##    produzem maior diversidade de caracteristicas.
+pdf("BM_rates_sim_tips.pdf", height = 7, width = 14)
+par(mfrow= c(1,2))
+plot(x = low.rate[100,], y = rep(1, times = ncol(low.rate)), xlim = c(8, 12), ylim = c(0,2), pch = 19)
+plot(x = high.rate[100,], y = rep(1, times = ncol(high.rate)), xlim = c(8, 12), ylim = c(0,2), pch = 19)
+dev.off()
 
 ## Nos vimos como funciona o movimento Browniano. Sabemos que temos um
 ##    valor inicial e depois este valor é modificado de acordo com realizações

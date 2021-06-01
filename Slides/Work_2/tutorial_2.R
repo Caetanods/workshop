@@ -129,7 +129,7 @@ persp(x, y, z, theta = 200, phi = 15, xlab = "mu", ylab = "sigma^2", zlab = "log
 
 ## Para fazer esse plot também podemos usar o pacote 'lattice'.
 
-if(!require(lattice)) {install.packages("lattice"); library(lattice)}
+## if(!require(lattice)) {install.packages("lattice"); library(lattice)}
 X <- as.matrix( expand.grid(x, y))
 colnames(X) <- c("mu","var")
 Z <- vector()
@@ -138,7 +138,8 @@ for(i in 1:nrow(X)){
 }
 df <- data.frame(X, Z)
 
-wireframe(Z ~ mu*var, data=df, main="", shade=TRUE, screen = list(z = -50, x = -70), xlab="media", ylab="var", zlab="log(Lik)")
+## ERRO: problema com o lattice?
+## wireframe(Z ~ mu*var, data=df, main="", shade=TRUE, screen = list(z = -50, x = -70), xlab="media", ylab="var", zlab="log(Lik)")
 
 ## Agora que temos uma visão da superfície de verossimilhança do modelo,
 ##   vamos fazer uma estimativa da Maximum Likelihood Estimate usando uma
@@ -185,7 +186,7 @@ var(nr)
 
 ## Essa diferença parece ser importante?
 ## Qual os possíveis motivos da diferença?
-## Por que nenhuma das duas estimativas resultou no mesmo valor de média e variância 
+## Por que nenhuma das duas estimativas resultou no mesmo valor de média e variância
 ##    que gerou os dados?
 
 ###########################################################
