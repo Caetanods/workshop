@@ -52,6 +52,8 @@ lik.norm(dt=nr.small, mu=10, var=5)
 ## Vamos repetir usando a transformação log:
 
 ## A função abaixo usa o log para transformar o cálculo da verossimilhança.
+## Não basta simplesmente calcular o log da função anterior, pois o problema de calculo já acontece
+##     durante as operações da função de verossimilhança.
 log.lik.norm <- function(dt, mu, var){
   ## dt = dados (class::vector).
   ## mu = média.
@@ -100,7 +102,16 @@ res_sig <- vector()
 for(i in 1:20){
   res_sig[i] <- log.lik.norm(dt=nr, mu=10, var=i)
 }
-plot(res_sig~seq(1,20), xlab = "variance (sigma^2)", ylab = "log(Likelihood)", pch = 16, type = "b")
+
+## Podemos comparar esses dois perfis de verossimilhança.
+## Note como o efeito da média na verossimilhança é maior do que o efeito da variância.
+## Aqui já temos um conceito importante: alguns parametros dos modelos são mais fáceis
+##      de otimizar (i.e., estimar) do que outros.
+par( mfrow = c(1,2) )
+plot(res_mu~seq(1,20), xlab = "mean (mu)", ylab = "log(Likelihood)", pch = 16, type = "b"
+     , ylim = c(-30000, -4000))
+plot(res_sig~seq(1,20), xlab = "variance (sigma^2)", ylab = "log(Likelihood)", pch = 16, type = "b"
+     , ylim = c(-30000, -4000))
 
 ## Agora vamos calcular a superfície completa de likelihood.
 ## Nesse caso temos dois parâmetros e, portanto, precisamos adicionar mais um eixo no gráfico.
@@ -127,19 +138,23 @@ persp(x, y, z, theta = 35, phi = 35, xlab = "mu", ylab = "sigma^2", zlab = "log(
 persp(x, y, z, theta = 20, phi = 15, xlab = "mu", ylab = "sigma^2", zlab = "log(likelihood)", border = "black", col = "grey", r = 4)
 persp(x, y, z, theta = 200, phi = 15, xlab = "mu", ylab = "sigma^2", zlab = "log(likelihood)", border = "black", col = "grey", r = 4)
 
-## Para fazer esse plot também podemos usar o pacote 'lattice'.
-
-## if(!require(lattice)) {install.packages("lattice"); library(lattice)}
-X <- as.matrix( expand.grid(x, y))
-colnames(X) <- c("mu","var")
-Z <- vector()
-for(i in 1:nrow(X)){
-  Z[i] <- log.lik.norm(dt=nr, mu=X[i,1], var=X[i,2])
+## Podemos também expandir a area desse perfil de likelihood.
+x <- -40:40 ## valores para mu
+y <- seq(from = 0.0, to = 10, by = 0.1) ## valores para sigma
+## Vamos usar z para criar uma tabela com a combinação dos valores de
+##    log likelihood.
+## Os valores de x estão nas linhas e os de y nas colunas.
+z <- matrix(data = NA, nrow = length(x), ncol = length(y))
+for(i in 1:length(x)){
+  for(j in 1:length(y)){
+    z[i,j] <- log.lik.norm(dt=nr, mu=x[i], var=y[j])
+  }
 }
-df <- data.frame(X, Z)
-
-## ERRO: problema com o lattice?
-## wireframe(Z ~ mu*var, data=df, main="", shade=TRUE, screen = list(z = -50, x = -70), xlab="media", ylab="var", zlab="log(Lik)")
+head( z )
+persp(x, y, z, theta = 35, phi = 35, xlab = "mu", ylab = "sigma^2", zlab = "log(likelihood)"
+      , border = "black", col = "grey", r = 4)
+persp(x, y, z, theta = 20, phi = 15, xlab = "mu", ylab = "sigma^2", zlab = "log(likelihood)", border = "black", col = "grey", r = 4)
+persp(x, y, z, theta = 200, phi = 15, xlab = "mu", ylab = "sigma^2", zlab = "log(likelihood)", border = "black", col = "grey", r = 4)
 
 ## Agora que temos uma visão da superfície de verossimilhança do modelo,
 ##   vamos fazer uma estimativa da Maximum Likelihood Estimate usando uma
@@ -175,10 +190,25 @@ model.fit$par ## O MLE dos parametros. Primero média e depois variancia.
 model.fit$value ## O log-likelihood para o MLE.
 model.fit$convergence ## Código para a convergência. Veja a pagina de ajuda de 'optim'.
 
+## Note the a otimização anterior teve uma mensagem de Warning. Porque isso?
+## Veja opção "lower" e "upper"
+bounded.fit <- optim(par = c(1,1), fn = to.optim, method = "L-BFGS-B"
+                     , lower = c(-100, 0.0000001), upper = c(100, 100)
+                     , control = list(fnscale=-1))
+model.fit$par ## O MLE dos parametros. Primero média e depois variancia.
+model.fit$value ## O log-likelihood para o MLE.
+model.fit$convergence ## Código para a convergência. Veja a pagina de ajuda de 'optim'.
+
 ## Agora podemos calcular o valor de MLE para a média e variância usando
 ##   as fórmulas analíticas.
 mean(nr)
 var(nr)
+
+## Valores usados para gerar os dados:
+abs( model.fit$par[1] - 10 )
+abs( model.fit$par[2] - 4 ) ## SD = 2
+abs( mean(nr) - 10 )
+abs( var(nr) - 4 ) ## SD = 2
 
 ## Veja que existe uma diferença pequena entre as duas estimativas.
 
@@ -188,6 +218,58 @@ var(nr)
 ## Qual os possíveis motivos da diferença?
 ## Por que nenhuma das duas estimativas resultou no mesmo valor de média e variância
 ##    que gerou os dados?
+
+###########################################################
+## Função de verossimilhança para um modelo de diversificação
+
+library( diversitree )
+library( TreeSim )
+
+## Primeiro geramos uma história de diversificação:
+phy <- sim.bd.age(age = 40, numbsim = 1, lambda = 0.2, mu = 0.1
+                  , complete = FALSE, mrca = TRUE)[[1]]
+## Plote a filogenia e o LTT plot.
+plot( phy ); axisPhylo()
+ltt.plot(phy)
+
+## Qual a função de verossimilhança para o modelo birth-death?
+help( "make.bd" )
+bd_fn <- make.bd(tree = phy)
+bd_fn
+
+## Função já retorna em log(likelihood)
+bd_fn(pars = c(0.2, 0.1))
+
+## O perfil de likelihood para a taxa de especiação:
+res_lambda <- vector()
+lambda_vals <- seq(from = 0.001, to = 2, by = 0.01)
+for(i in 1:length(lambda_vals)){
+  res_lambda[i] <- bd_fn(pars = c(lambda_vals[i], 0.1))
+}
+plot(res_lambda~lambda_vals, main = "", ylab = "log( likelihood )", xlab = "Lambda", type = "b")
+
+## O perfil de likelihood para a taxa de extinção:
+res_mu <- vector()
+mu_vals <- seq(from = 0.0, to = 2, by = 0.01)
+for(i in 1:length(mu_vals)){
+  res_mu[i] <- bd_fn(pars = c(0.2, mu_vals[i]))
+}
+plot(res_mu~mu_vals, main = "", ylab = "log( likelihood )", xlab = "Mu", type = "b")
+
+x <- seq(from = 0.001, to = 2, by = 0.1) ## lambda
+y <- seq(from = 0.0, to = 2, by = 0.1) ## mu
+z <- matrix(data = NA, nrow = length(x), ncol = length(y))
+for(i in 1:length(x)){
+  for(j in 1:length(y)){
+    z[i,j] <- bd_fn(pars = c(x[i], y[j]))
+  }
+}
+persp(x, y, z, theta = 35, phi = 35, xlab = "lambda", ylab = "mu", zlab = "log(likelihood)"
+      , border = "black", col = "grey", r = 4)
+persp(x, y, z, theta = 0, phi = 15, xlab = "lambda", ylab = "mu", zlab = "log(likelihood)"
+      , border = "black", col = "grey", r = 4)
+persp(x, y, z, theta = 0, phi = 0, xlab = "lambda", ylab = "mu", zlab = "log(likelihood)"
+      , border = "black", col = "grey", r = 4)
 
 ###########################################################
 ## Desafio:
