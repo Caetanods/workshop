@@ -102,6 +102,7 @@ res_sig <- vector()
 for(i in 1:20){
   res_sig[i] <- log.lik.norm(dt=nr, mu=10, var=i)
 }
+plot(res_sig~seq(1,20), xlab = "variance (sigma^2)", ylab = "log(Likelihood)", pch = 16, type = "b")
 
 ## Podemos comparar esses dois perfis de verossimilhança.
 ## Note como o efeito da média na verossimilhança é maior do que o efeito da variância.
@@ -185,6 +186,7 @@ to.optim <- function(par){
 ## Faz sentido para você que precisamos fazer uma maximização dessa função? Esse conceito
 ##   é importante. Não deixe a dúvida passar.
 model.fit <- optim(c(1,1), to.optim, control=list(fnscale=-1))
+model.fit
 names( model.fit )
 model.fit$par ## O MLE dos parametros. Primero média e depois variancia.
 model.fit$value ## O log-likelihood para o MLE.
@@ -198,6 +200,11 @@ bounded.fit <- optim(par = c(1,1), fn = to.optim, method = "L-BFGS-B"
 model.fit$par ## O MLE dos parametros. Primero média e depois variancia.
 model.fit$value ## O log-likelihood para o MLE.
 model.fit$convergence ## Código para a convergência. Veja a pagina de ajuda de 'optim'.
+
+bounded.fit <- optim(par = c(90,90), fn = to.optim, method = "L-BFGS-B"
+                     , lower = c(-100, 0.0000001), upper = c(100, 100)
+                     , control = list(fnscale=-1))
+bounded.fit$par
 
 ## Agora podemos calcular o valor de MLE para a média e variância usando
 ##   as fórmulas analíticas.
@@ -218,6 +225,66 @@ abs( var(nr) - 4 ) ## SD = 2
 ## Qual os possíveis motivos da diferença?
 ## Por que nenhuma das duas estimativas resultou no mesmo valor de média e variância
 ##    que gerou os dados?
+
+library( nloptr )
+## Note que vamos usar uma função de verossimilhança invertida pois "nloptr", como muitos outros
+##      otimizadores, foca na minimização das funções:
+to.nlopt <- function(par){
+  ## Função que retorna o inverso do log( likelihood )
+  -1 * log.lik.norm(dt=nr, mu=par[1], var=par[2])
+}
+
+sink(file = "trace.txt", type = "output")
+S1 = nloptr(x0 = c(1,1), eval_f = to.nlopt
+            , opts = list(algorithm = "NLOPT_LN_SBPLX", print_level = 3))
+sink()
+## Solução extraida do StackOverflow:
+## https://stackoverflow.com/questions/33635174/getting-trace-to-store-a-value-in-r
+# get the solutions from the output file
+solutionPath = readLines(con = file("trace.txt"))
+# extract the solution path data out of the raw output
+solutionPathParamRaw = solutionPath[grepl("^\tx", solutionPath)]
+solutionPathParamMatch = gregexpr("(-)?[0-9]+(\\.[0-9]+)?", solutionPathParamRaw, perl = TRUE)
+solutionPathParam = as.data.frame( t( sapply( regmatches( solutionPathParamRaw, solutionPathParamMatch), as.numeric, simplify = TRUE) ) )
+colnames(solutionPathParam) <- c("mean", "var")
+
+## Podemos observar as ultimas iterações da busca. Veja que chegamos na estimativa esperada.
+tail( solutionPathParam )
+
+## Agora podemos fazer um plot com os valores visitados a cada iteração de busca.
+plot(x = 1:nrow(solutionPathParam), y = solutionPathParam$mean, type = "l", xlab = "Iteration", ylab = "Parameter value", lwd = 2)
+lines(x = 1:nrow(solutionPathParam), y = solutionPathParam$var, col = "red", lwd = 2)
+legend(x = 100, y = max(solutionPathParam), legend = c("mean","var"), lty = 1
+       , col = c("black", "red"), xjust = 1, lwd =2)
+
+## Trace no espaço 2D:
+plot(x = 1, y = 1, xlim = range(solutionPathParam$mean), ylim = range(solutionPathParam$var), type = "n", xlab = "mean", ylab = "var")
+for( i in 1:nrow(solutionPathParam)){
+lines(x = solutionPathParam$mean[i:(i+1)], y = solutionPathParam$var[i:(i+1)], type = "b")
+}
+
+## Podemos fazer uma animação desse plot.
+## NOTA: ESSA PARTE DA ANIMAÇÃO PODE NÃO RODAR NO SEU SISTEMA.
+
+## dir.create("animate")
+## for( i in 1:nrow(solutionPathParam)){
+##   png(filename = paste0("animate/Animation_MLE_search_", i, ".png"))
+##   plot(x = 1, y = 1, xlim = range(solutionPathParam$mean), ylim = range(solutionPathParam$var), type = "n", xlab = "mean", ylab = "var", main = "Busca da média e variância")
+##   lines(x = solutionPathParam$mean[i:(i+1)], y = solutionPathParam$var[i:(i+1)], type = "b")
+##   dev.off()
+## }
+## library( magick )
+## ## Vamos ler as imagens que geramos e construir a animação.
+## img_list <- list()
+## for(i in 1:nrow(solutionPathParam)) img_list[[i]] <- image_read( paste0("animate/Animation_MLE_search_", i, ".png") )
+## ## join the images together
+## img_joined <- image_join(img_list)
+## ## animate at 2 frames per second
+## img_animated <- image_animate(img_joined, fps = 2)
+## ## view animated image
+## img_animated
+## ## save to disk
+## image_write(image = img_animated, path = "Animation_MLE_search.gif")
 
 ###########################################################
 ## Função de verossimilhança para um modelo de diversificação
