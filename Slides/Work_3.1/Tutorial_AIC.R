@@ -14,6 +14,7 @@ plot( ladderize(female_care[[1]]), show.tip.label = FALSE); axisPhylo()
 
 ## Prepare os dados para a função:
 female_mat <- data.frame(names(female_care[[2]]), unname(female_care[[2]]))
+head( female_mat )
 
 ## ###################################################
 ## Cuidado maternal em opiliões:
@@ -69,6 +70,12 @@ female_prec_ER
 ## Podemos fazer o plot do modelo MK:
 plotMKmodel( female_prec_ER )
 
+## SYM: Taxas diferentes entre os estados, mas taxas de ganhos e perdas são iguais.
+female_prec_SYM <- corHMM(phy = female_prec[[1]], data = female_prec_mat, rate.cat = 1
+                          , model = "SYM", n.cores = 2)
+female_prec_SYM
+plotMKmodel( female_prec_SYM )
+
 ## ARD: Taxas diferentes para cada uma das transições:
 female_prec_ARD <- corHMM(phy = female_prec[[1]], data = female_prec_mat, rate.cat = 1
                      , model = "ARD", n.cores = 2)
@@ -84,12 +91,24 @@ female_prec_BIO <- corHMM(phy = female_prec[[1]], data = female_prec_mat
 female_prec_BIO
 plotMKmodel( female_prec_BIO )
 
+## BIO1: Temos ainda mais um modelo. No caso vamos seguir as mesmas restrições do modelo BIO, mas todas as taxas de transição são iguais.
+mat_BIO1 <- female_prec[[3]]
+mat_BIO1[mat_BIO1 > 1] <- 1
+female_prec_BIO1 <- corHMM(phy = female_prec[[1]], data = female_prec_mat
+                          , rate.mat = mat_BIO1, rate.cat = 1
+                          , n.cores = 2)
+female_prec_BIO1
+plotMKmodel( female_prec_BIO1 )
+
+## Podemos listar os AICc para todos os modelos do set:
 female_prec_ARD$AICc
 female_prec_ER$AICc
 female_prec_BIO$AICc
+female_prec_BIO1$AICc
+female_prec_SYM$AICc
 
 ## Calculamos o delta AICc:
-aic_vec <- setNames(object = c(female_prec_ARD$AICc, female_prec_ER$AICc, female_prec_BIO$AICc), nm = c("ARD","ER","BIO"))
+aic_vec <- setNames(object = c(female_prec_BIO1$AICc, female_prec_ARD$AICc, female_prec_ER$AICc, female_prec_BIO$AICc, female_prec_SYM$AICc), nm = c("BIO1", "ARD","ER","BIO", "SYM"))
 aic_vec
 aic_vec - min(aic_vec) ## Qual o melhor modelo?
 
